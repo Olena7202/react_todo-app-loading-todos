@@ -6,12 +6,19 @@ import { getTodos, addTodo, deleteTodo, updateTodo } from './api/todos';
 import TodoList from './components/TodoList';
 import Footer from './components/Footer';
 import Header from './components/Header';
+import ErrorNotification from './components/Notification';
+
+enum Filter {
+  All = 'All',
+  Active = 'Active',
+  Completed = 'Completed',
+}
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodo, setNewTodo] = useState('');
-  const [activeFilter, setActiveFilter] = useState('All');
-  const [loading, setLoading] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<Filter>(Filter.All);
+  const [isLoading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadTodos = async () => {
@@ -20,9 +27,9 @@ export const App: React.FC = () => {
       const data = await getTodos();
 
       setTodos(data);
-      setError(null);
+      setError(null); // Clear error if request succeeds
     } catch {
-      setError('Unable to load todos');
+      setError('Unable to load todos'); // Set error if request fails
     } finally {
       setLoading(false);
     }
@@ -46,7 +53,7 @@ export const App: React.FC = () => {
 
       setTodos([...todos, createdTodo]);
       setNewTodo('');
-      setError(null);
+      setError(null); // Clear error after successful addition
     } catch {
       setError('Unable to add a todo');
     } finally {
@@ -63,7 +70,7 @@ export const App: React.FC = () => {
       );
       await deleteTodo(todoId);
       setTodos(todos.filter(todo => todo.id !== todoId));
-      setError(null);
+      setError(null); // Clear error after successful deletion
     } catch {
       setError('Unable to delete a todo');
       setTodos(
@@ -84,7 +91,7 @@ export const App: React.FC = () => {
       });
 
       setTodos(todos.map(t => (t.id === todo.id ? updatedTodo : t)));
-      setError(null);
+      setError(null); // Clear error after successful update
     } catch {
       setError('Unable to update a todo');
       setTodos(
@@ -95,22 +102,15 @@ export const App: React.FC = () => {
 
   const filteredTodos = () => {
     switch (activeFilter) {
-      case 'Active':
+      case Filter.Active:
         return todos.filter(todo => !todo.completed);
-      case 'Completed':
+      case Filter.Completed:
         return todos.filter(todo => todo.completed);
+      case Filter.All:
       default:
         return todos;
     }
   };
-
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => setError(null), 3000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
 
   const handleClearCompleted = () => {
     setTodos(todos.filter(todo => !todo.completed));
@@ -130,7 +130,7 @@ export const App: React.FC = () => {
           handleAddTodo={handleAddTodo}
           todos={todos}
           handleToggleTodo={handleToggleTodo}
-          loading={loading}
+          loading={isLoading}
         />
         <TodoList
           todos={filteredTodos()}
@@ -140,22 +140,11 @@ export const App: React.FC = () => {
         <Footer
           todos={todos}
           activeFilter={activeFilter}
-          setActiveFilter={setActiveFilter}
+          onFilterChange={setActiveFilter}
           handleClearCompleted={handleClearCompleted}
         />
       </div>
-      <div
-        data-cy="ErrorNotification"
-        className={`notification is-danger ${error === null ? 'hidden' : ''}`}
-      >
-        <button
-          data-cy="HideErrorButton"
-          type="button"
-          className="delete"
-          onClick={() => setError(null)}
-        />
-        {error || ''}
-      </div>
+      <ErrorNotification error={error} setError={setError} />
     </div>
   );
 };

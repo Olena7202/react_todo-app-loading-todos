@@ -1,17 +1,23 @@
 import React from 'react';
 import { Todo } from '../types/Todo';
 
+enum Filter {
+  All = 'All',
+  Active = 'Active',
+  Completed = 'Completed',
+}
+
 interface FooterProps {
   todos: Todo[];
-  activeFilter: string;
-  setActiveFilter: React.Dispatch<React.SetStateAction<string>>;
+  activeFilter: Filter;
+  onFilterChange: React.Dispatch<React.SetStateAction<Filter>>;
   handleClearCompleted: () => void;
 }
 
 const Footer: React.FC<FooterProps> = ({
   todos,
   activeFilter,
-  setActiveFilter,
+  onFilterChange,
   handleClearCompleted,
 }) => {
   if (todos.length === 0) {
@@ -29,25 +35,25 @@ const Footer: React.FC<FooterProps> = ({
       <nav className="filter" data-cy="Filter">
         <a
           href="#/"
-          className={`filter__link ${activeFilter === 'All' ? 'selected' : ''}`}
+          className={`filter__link ${activeFilter === Filter.All ? 'selected' : ''}`}
           data-cy="FilterLinkAll"
-          onClick={() => setActiveFilter('All')}
+          onClick={() => onFilterChange(Filter.All)}
         >
           All
         </a>
         <a
           href="#/active"
-          className={`filter__link ${activeFilter === 'Active' ? 'selected' : ''}`}
+          className={`filter__link ${activeFilter === Filter.Active ? 'selected' : ''}`}
           data-cy="FilterLinkActive"
-          onClick={() => setActiveFilter('Active')}
+          onClick={() => onFilterChange(Filter.Active)}
         >
           Active
         </a>
         <a
           href="#/completed"
-          className={`filter__link ${activeFilter === 'Completed' ? 'selected' : ''}`}
+          className={`filter__link ${activeFilter === Filter.Completed ? 'selected' : ''}`}
           data-cy="FilterLinkCompleted"
-          onClick={() => setActiveFilter('Completed')}
+          onClick={() => onFilterChange(Filter.Completed)}
         >
           Completed
         </a>
